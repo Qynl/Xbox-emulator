@@ -1,0 +1,14 @@
+[package]
+name = "xone"
+version = "0.1.0"
+edition = "2021"
+description = "From-scratch Xbox emulation research project (x86-64 core for the Xbox One and Series S|X generations)"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
