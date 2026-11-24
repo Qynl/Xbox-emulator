@@ -221,11 +221,20 @@ This is an interpreter, so speed is instructions per second, not frames:
 SSE2) and runs it to a fixed instruction budget, failing loudly unless the whole
 budget retired on the step limit. Repeat `--binary` to A/B two builds with
 interleaved runs, which is the only comparison worth trusting here: on this
-2-vCPU cloud VM, run-to-run noise is about +-3%. With that protocol, replacing
-the byte-at-a-time memory accessors with one unaligned load and a masked
-read-modify-write store took the mixed body from 42.0 to 51.0 MIPS and the
-SSE-only body from 39.2 to 45.6 (medians of 7 interleaved runs). Absolute
-numbers belong to the host that produced them; the ratio is the result.
+2-vCPU cloud VM, run-to-run noise is a few percent, and the same binary has
+measured between 37 and 51 MIPS in different sessions as the host load changed.
+The ratio is the result, not the absolute:
+
+| body | before | after | speedup | 95% CI | paired wins | sign test |
+|------|--------|-------|---------|--------|-------------|-----------|
+| mixed (ALU + mem + SSE2) | 37.4 | 45.5 MIPS | 1.20x | 1.189-1.221 | 15/15 | p = 6e-05 |
+| integer only | 36.2 | 39.6 MIPS | 1.12x | 1.042-1.158 | 14/15 | p = 0.001 |
+| SSE2 only | 35.3 | 39.7 MIPS | 1.13x | 1.126-1.146 | 15/15 | p = 6e-05 |
+
+Medians of 15 interleaved runs per body, alternating which binary goes first;
+CI from bootstrapping the paired ratios. The change measured is the flat-memory
+accessors: one unaligned load and a masked read-modify-write store instead of a
+byte loop.
 
 ## Reality check on "Xbox One on PC"
 

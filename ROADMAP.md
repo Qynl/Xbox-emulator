@@ -63,14 +63,15 @@ packed shifts, `shufps`/`shufpd`, `movmskps`/`movmskpd`/`pmovmskb`, and the
 oracle (`tools/check_shift_flags.py`, 8184 cases) rather than by the reference.
 
 **Throughput.** `tools/bench.py` measures the interpreter on a hand-assembled
-loop and A/Bs two builds with interleaved runs (noise on the shared VM is
-+-3%, so single runs prove nothing). Replacing the byte-at-a-time memory
-accessors with one unaligned load and a masked read-modify-write store took the
-mixed body from 42.0 to 51.0 MIPS and the SSE-only body from 39.2 to 45.6
-(medians of 7 interleaved runs, 2-vCPU cloud host). The two-byte opcode
-dispatch also has a single source of truth now: the integer half of `two_byte`
-claims what it handles and hands everything else to `sse`, so a new vector
-instruction cannot be half-added.
+loop and A/Bs two builds with interleaved runs, because a single run on the
+shared VM proves nothing. Replacing the byte-at-a-time memory accessors with
+one unaligned load and a masked read-modify-write store is 1.20x on a mixed
+body and 1.13x on SSE-only code (medians of 15 interleaved runs, 15/15 paired
+wins, sign test p = 6e-05, 95% CI 1.189-1.221 and 1.126-1.146); absolute MIPS
+move with host load, the ratio does not. The two-byte opcode dispatch also has
+a single source of truth now: the integer half of `two_byte` claims what it
+handles and hands everything else to `sse`, so a new vector instruction cannot
+be half-added.
 
 **Open in M2:** MXCSR (rounding modes and exception masks are fixed at the
 default), AVX/AVX2 (deliberately not advertised in `cpuid` until they execute —
